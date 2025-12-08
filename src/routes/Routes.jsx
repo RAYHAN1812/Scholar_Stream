@@ -31,55 +31,133 @@ import Profile from "../pages/Dashboard/shared/Profile";
 import PaymentSuccess from "../pages/Payment/PaymentSuccess";
 import PaymentFailed from "../pages/Payment/PaymentFailed";
 
-
 export const router = createBrowserRouter([
-    {
-        path: "/",
-        element: <MainLayout />,
-        errorElement: <ErrorPage />,
-        children: [
-            { path: "/", element: <Home /> },
-            { path: "all-scholarships", element: <AllScholarships /> },
-            { path: "scholarship/:id", element: <ScholarshipDetails /> },
-            { path: "login", element: <Login /> },
-            { path: "register", element: <Register /> },
-            
-            // Private Routes
-            { 
-                path: "checkout", 
-                element: <PrivateRoute><CheckoutPage /></PrivateRoute> 
-            },
-            { 
-                path: "payment/success", 
-                element: <PrivateRoute><PaymentSuccess /></PrivateRoute> 
-            },
-            { 
-                path: "payment/failed", 
-                element: <PrivateRoute><PaymentFailed /></PrivateRoute> 
-            },
-        ],
-    },
-    {
-        path: "dashboard",
-        element: <PrivateRoute><DashboardLayout /></PrivateRoute>,
-        errorElement: <ErrorPage />,
-        children: [
-            // Shared
-            { path: "profile", element: <PrivateRoute><Profile /></PrivateRoute> },
+  {
+    path: "/",
+    element: <MainLayout />,
+    errorElement: <ErrorPage />,
+    children: [
+      { path: "/", element: <Home /> },
+      { path: "all-scholarships", element: <AllScholarships /> },
+      { path: "scholarship/:id", element: <ScholarshipDetails /> },
+      { path: "login", element: <Login /> },
+      { path: "register", element: <Register /> },
 
-            // Admin Routes
-            { path: "add-scholarship", element: <AdminRoute><AddScholarship /></AdminRoute> },
-            { path: "manage-scholarships", element: <AdminRoute><ManageScholarships /></AdminRoute> },
-            { path: "manage-users", element: <AdminRoute><ManageUsers /></AdminRoute> },
-            { path: "analytics", element: <AdminRoute><Analytics /></AdminRoute> },
+      // Private Routes
+      {
+        path: "checkout",
+        element: (
+          <PrivateRoute>
+            <CheckoutPage />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "payment/success",
+        element: (
+          <PrivateRoute>
+            <PaymentSuccess />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "payment/failed",
+        element: (
+          <PrivateRoute>
+            <PaymentFailed />
+          </PrivateRoute>
+        ),
+      },
+    ],
+  },
+  {
+    path: "dashboard",
+    element: (
+      <PrivateRoute>
+        <DashboardLayout />
+      </PrivateRoute>
+    ),
+    errorElement: <ErrorPage />,
+    children: [
+      // Shared
+      {
+        path: "profile",
+        element: (
+          <PrivateRoute>
+            <Profile />
+          </PrivateRoute>
+        ),
+      },
 
-            // Moderator Routes
-            { path: "manage-applications", element: <ModeratorRoute><ManageApplications /></ModeratorRoute> },
-            { path: "all-reviews", element: <ModeratorRoute><AllReviews /></ModeratorRoute> },
+      // Admin Routes
+      {
+        path: "add-scholarship",
+        element: (
+          <AdminRoute>
+            <AddScholarship />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "manage-scholarships",
+        element: (
+          <AdminRoute>
+            <ManageScholarships />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "manage-users",
+        element: (
+          <AdminRoute>
+            <ManageUsers />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "analytics",
+        element: (
+          <AdminRoute>
+            <Analytics />
+          </AdminRoute>
+        ),
+      },
 
-            // Student Routes
-            { path: "my-applications", element: <StudentRoute><MyApplications /></StudentRoute> },
-            { path: "my-reviews", element: <StudentRoute><MyReviews /></StudentRoute> },
-        ]
-    }
+      // Moderator Routes
+      {
+        path: "manage-applications",
+        element: (
+          <ModeratorRoute>
+            <ManageApplications />
+          </ModeratorRoute>
+        ),
+      },
+      {
+        path: "all-reviews",
+        element: (
+          <ModeratorRoute>
+            <AllReviews />
+          </ModeratorRoute>
+        ),
+      },
+
+      // Student Routes
+      {
+        path: "my-applications",
+        element: (
+          <StudentRoute>
+            <MyApplications />
+          </StudentRoute>
+        ),
+      },
+      {
+        path: "my-reviews",
+        element: (
+          <StudentRoute>
+            <MyReviews />
+          </StudentRoute>
+        ),
+      },
+    ],
+  },
 ]);
