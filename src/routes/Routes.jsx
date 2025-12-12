@@ -1,51 +1,62 @@
-// src/routes/Routes.jsx
 import { createBrowserRouter } from "react-router-dom";
+
+// Layouts
 import MainLayout from "../layouts/MainLayout";
-import Home from "../pages/Home/Home";
+import DashboardLayout from "../layouts/DashboardLayout";
+
+// Public Pages
+import Home from "../pages/Home";
+import AllScholarships from "../pages/Scholarships";
+import ScholarshipDetails from "../pages/ScholarshipDetails";
 import Login from "../pages/Auth/Login";
 import Register from "../pages/Auth/Register";
-import AllScholarships from "../pages/Scholarship/AllScholarships";
-import ScholarshipDetails from "../pages/Scholarship/ScholarshipDetails";
+import CheckoutPage from "../pages/Checkout";
+import PaymentSuccess from "../pages/PaymentSuccess";
+import PaymentFailed from "../pages/PaymentFailed";
+import NotFound from "../pages/NotFound";
+
+// Shared Dashboard
+import Profile from "../pages/Dashboard/Shared/Profile";
+
+// Admin Pages
+import AddScholarship from "../pages/admin/AddScholarship";
+import ManageScholarships from "../pages/Dashboard/Admin/ManageScholarships";
+import ManageUsers from "../pages/Dashboard/Admin/AdminManageUsers";
+import Analytics from "../pages/admin/AdminAnalytics";
+
+// Moderator Pages
+import ManageApplications from "../pages/Moderator/ManageApplications";
+import AllReviews from "../pages/Moderator/AllReviews";
+
+// Student Pages
+import MyApplications from "../pages/Dashboard/Admin/Student/MyApplications";
+import MyReviews from "../pages/Dashboard/Admin/Student/MyReviews";
+
+// Route Guards
 import PrivateRoute from "./PrivateRoute";
-import DashboardLayout from "../layouts/DashboardLayout";
-import CheckoutPage from "../pages/Payment/CheckoutPage";
 import AdminRoute from "./AdminRoute";
 import ModeratorRoute from "./ModeratorRoute";
 import StudentRoute from "./StudentRoute";
-import ErrorPage from "../pages/shared/ErrorPage";
-
-// Admin Dashboard Pages
-import AddScholarship from "../pages/Dashboard/Admin/AddScholarship";
-import ManageScholarships from "../pages/Dashboard/Admin/ManageScholarships";
-import ManageUsers from "../pages/Dashboard/Admin/ManageUsers";
-import Analytics from "../pages/Dashboard/Admin/Analytics";
-
-// Moderator Dashboard Pages
-import ManageApplications from "../pages/Dashboard/Moderator/ManageApplications";
-import AllReviews from "../pages/Dashboard/Moderator/AllReviews";
-
-// Student Dashboard Pages
-import MyApplications from "../pages/Dashboard/Student/MyApplications";
-import MyReviews from "../pages/Dashboard/Student/MyReviews";
-import Profile from "../pages/Dashboard/shared/Profile";
-import PaymentSuccess from "../pages/Payment/PaymentSuccess";
-import PaymentFailed from "../pages/Payment/PaymentFailed";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <MainLayout />,
-    errorElement: <ErrorPage />,
+    errorElement: <NotFound />,
     children: [
       { path: "/", element: <Home /> },
-      { path: "all-scholarships", element: <AllScholarships /> },
+      { path: "scholarships", element: <AllScholarships /> },
+
+      // Scholarship single details
       { path: "scholarship/:id", element: <ScholarshipDetails /> },
+
+      // Auth
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
 
-      // Private Routes
+      // Checkout + Payments
       {
-        path: "checkout",
+        path: "checkout/:scholarshipId",
         element: (
           <PrivateRoute>
             <CheckoutPage />
@@ -70,6 +81,8 @@ export const router = createBrowserRouter([
       },
     ],
   },
+
+  // Dashboard Root
   {
     path: "dashboard",
     element: (
@@ -77,19 +90,10 @@ export const router = createBrowserRouter([
         <DashboardLayout />
       </PrivateRoute>
     ),
-    errorElement: <ErrorPage />,
     children: [
-      // Shared
-      {
-        path: "profile",
-        element: (
-          <PrivateRoute>
-            <Profile />
-          </PrivateRoute>
-        ),
-      },
+      { path: "profile", element: <Profile /> },
 
-      // Admin Routes
+      // ----- Admin -----
       {
         path: "add-scholarship",
         element: (
@@ -123,7 +127,7 @@ export const router = createBrowserRouter([
         ),
       },
 
-      // Moderator Routes
+      // ----- Moderator -----
       {
         path: "manage-applications",
         element: (
@@ -141,7 +145,7 @@ export const router = createBrowserRouter([
         ),
       },
 
-      // Student Routes
+      // ----- Student -----
       {
         path: "my-applications",
         element: (
@@ -160,4 +164,7 @@ export const router = createBrowserRouter([
       },
     ],
   },
+
+  // Catch All
+  { path: "*", element: <NotFound /> },
 ]);

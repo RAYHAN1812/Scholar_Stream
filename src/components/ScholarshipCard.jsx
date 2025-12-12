@@ -1,28 +1,30 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import dayjs from 'dayjs';
 
 export default function ScholarshipCard({ sch }) {
   return (
-    <div className="card card-compact bg-base-100 shadow-md">
-      <figure><img src={sch.universityImage || '/placeholder.jpg'} alt={sch.scholarshipName} className="h-40 w-full object-cover" /></figure>
-      <div className="card-body">
-        <h2 className="card-title">{sch.scholarshipName}</h2>
-        <p className="text-sm text-gray-600">{sch.universityName} • {sch.universityCity}, {sch.universityCountry}</p>
-        <div className="flex justify-between items-center mt-2">
-          <div>
-            <div className="text-sm">Category: <strong>{sch.scholarshipCategory}</strong></div>
-            <div className="text-sm">Application Fee: <strong>{sch.applicationFees || 'Free'}</strong></div>
-          </div>
-          <div>
-            <div className="text-xs text-gray-500">Deadline</div>
-            <div className="text-sm">{dayjs(sch.applicationDeadline).format('MMM D, YYYY')}</div>
-          </div>
-        </div>
-        <div className="card-actions justify-end mt-4">
-          <Link to={`/scholarships/${sch._id}`} className="btn btn-primary btn-sm">View Details</Link>
-        </div>
-      </div>
+    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300">
+      <img
+        src={sch.universityImage}
+        alt={sch.universityName}
+        className="w-full h-36 object-cover rounded-lg mb-4"
+      />
+      <h3 className="text-xl font-bold mb-1 text-slate-900 dark:text-white">{sch.scholarshipName}</h3>
+      <p className="text-slate-600 dark:text-slate-400 mb-1">
+        {sch.universityName}, {sch.universityCity}, {sch.universityCountry}
+      </p>
+      <p className="text-sm text-slate-500 dark:text-slate-300 mb-1">
+        Degree: {sch.degree} | Category: {sch.scholarshipCategory}
+      </p>
+      <p className="text-sm text-slate-500 dark:text-slate-300 mb-4">
+        Deadline: {new Date(sch.applicationDeadline).toLocaleDateString()}
+      </p>
+      <Link
+        to={`/scholarship/${sch._id}`}
+        className="inline-block bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+      >
+        View Details
+      </Link>
     </div>
   );
 }

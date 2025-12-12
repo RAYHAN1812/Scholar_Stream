@@ -1,22 +1,17 @@
-// src/layouts/MainLayout.jsx - Enhanced with rich styling
-import { Outlet, useLocation } from "react-router-dom";
-import Navbar from "../components/shared/Navbar";
-import Footer from "../components/shared/Footer";
+// src/layouts/MainLayout.jsx
+import React from "react";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import { Outlet } from "react-router-dom";
 
 const MainLayout = () => {
-  const location = useLocation();
-  const isDashboard = location.pathname.startsWith("/dashboard");
-
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background-light to-slate-50 dark:from-background-dark dark:to-slate-900 text-slate-800 dark:text-slate-200 transition-colors duration-300">
-      {!isDashboard && <Navbar />}
-
-      <main className="flex-grow">
-        {/* Outlet renders the current page content */}
-        <Outlet />
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <main className="flex-grow container mx-auto px-4 py-8">
+        <Outlet /> {/* This renders the page component based on route */}
       </main>
-
-      {!isDashboard && <Footer />}
+      <Footer />
     </div>
   );
 };

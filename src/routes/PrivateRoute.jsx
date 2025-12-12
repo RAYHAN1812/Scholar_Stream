@@ -1,17 +1,14 @@
+// src/routes/PrivateRoute.jsx
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function PrivateRoute({ children }) {
-  const { user, loadingAuth } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
 
-  if (loadingAuth) {
-    return (
-      <div className="flex justify-center items-center h-40">
-        <div className="spinner" />
-      </div>
-    );
+  if (loading) {
+    return <div className="text-center py-10">Loading authentication...</div>;
   }
 
   if (!user) {

@@ -1,126 +1,93 @@
 // src/providers/AuthProvider.jsx
-import { useEffect, useState } from "react";
-import {
-  GoogleAuthProvider,
-  createUserWithEmailAndPassword,
-  getAuth,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
-  updateProfile,
-} from "firebase/auth";
-import app from "../firebase/firebase.config";
-import useAxiosPublic from "../hooks/useAxiosPublic";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import axiosPublic from "../api/axiosClient";
 import useAxiosSecure from "../hooks/useAxiosSecure";
-import { AuthContext } from "./AuthContext";
 
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
+const AuthContext = createContext(null);
 
-const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState(null);
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);       // user info
+  const [loading, setLoading] = useState(true); // loading state
 
-  const axiosPublic = useAxiosPublic();   // No token required
-  const axiosSecure = useAxiosSecure();   // Token-based axios
+  const axiosSecure = useAxiosSecure();
 
   // ===========================
-  // 🔐 AUTH METHODS
+  // LOGIN
   // ===========================
-  const createUser = (email, password) => {
-    setLoading(true);
-    return createUserWithEmailAndPassword(auth, email, password);
+  const login = async (email, password) => {
+    try {
+      const res = await axiosPublic.post("/auth/login", { email, password });
+      const { token, user } = res.data;
+
+      if (token) localStorage.setItem("access-token", token);
+
+      setUser(user);
+      return user;
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error; // caller should handle
+    }
   };
 
-  const signIn = (email, password) => {
-    setLoading(true);
-    return signInWithEmailAndPassword(auth, email, password);
-  };
-
-  const logOut = () => {
-    setLoading(true);
+  // ===========================
+  // LOGOUT
+  // ===========================
+  const logout = () => {
     localStorage.removeItem("access-token");
-    setUserRole(null);
-    return signOut(auth);
-  };
-
-  const updateUserInfo = (name, photo) => {
-    return updateProfile(auth.currentUser, {
-      displayName: name,
-      photoURL: photo,
-    });
-  };
-
-  const googleSignIn = () => {
-    setLoading(true);
-    return signInWithPopup(auth, googleProvider);
+    setUser(null);
   };
 
   // ===========================
-  // 🔐 JWT + ROLE MANAGEMENT
+  // FETCH PROFILE
   // ===========================
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
+  const fetchProfile = async () => {
+    const token = localStorage.getItem("access-token");
+    if (!token) {
+      setLoading(false);
+      return;
+    }
 
-      if (!currentUser) {
-        localStorage.removeItem("access-token");
-        setUserRole(null);
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const userInfo = { email: currentUser.email };
-
-        // 1️⃣ Get JWT
-        const tokenRes = await axiosPublic.post("/jwt", userInfo);
-
-        const token = tokenRes.data.token;
-
-        if (token) {
-          localStorage.setItem("access-token", token);
-        }
-
-        // 2️⃣ Fetch Role using axiosSecure
-        const roleRes = await axiosSecure.get(`/users/role/${currentUser.email}`);
-        setUserRole(roleRes.data.role || "Student");
-
-      } catch (error) {
-        console.error("JWT/Role Fetch Error:", error);
-        setUserRole("Student"); // fallback
-      } finally {
-        setLoading(false);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
+    try {
+      const res = await axiosSecure.get("/auth/profile");
+      const profileUser = res.data.user || res.data;
+      setUser(profileUser);
+    } catch (error) {
+      console.error("fetchProfile error:", error);
+      logout(); // log out if token invalid or expired
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ===========================
-  // ROLE HELPERS
+  // ROLE HELPERS (derived from user)
   // ===========================
+  const userRole = user?.role || "Student";
   const isAdmin = userRole === "Admin";
   const isModerator = userRole === "Moderator";
   const isStudent = userRole === "Student";
 
-  const authInfo = {
+  // ===========================
+  // INITIALIZE ON LOAD
+  // ===========================
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const value = {
     user,
-    loading,
     userRole,
+    loading,
     isAdmin,
     isModerator,
     isStudent,
-    createUser,
-    signIn,
-    logOut,
-    updateUserInfo,
-    googleSignIn,
+    login,
+    logout,
+    fetchProfile,
   };
 
-  return <AuthContext.Provider value={authInfo}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export default AuthProvider;
+export default AuthContext;
+export const useAuth = () => useContext(AuthContext);

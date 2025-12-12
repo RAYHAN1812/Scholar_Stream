@@ -1,24 +1,16 @@
-import axios from 'axios';
-
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+// src/api/axiosClient.js
+import axios from "axios";
 
 const axiosClient = axios.create({
-  baseURL,
-  withCredentials: true, // send httpOnly cookie for JWT
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: "http://localhost:5000/api", // backend base -> /api + relative paths
+  // withCredentials: true, // enable if you use cookies
 });
 
-// Optional: add response interceptor to catch 401 and redirect to login
-axiosClient.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    if (err?.response?.status === 401) {
-      // optionally handle
-    }
-    return Promise.reject(err);
-  }
-);
+// Attach token automatically for normal public calls too
+axiosClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) config.headers = { ...(config.headers || {}), Authorization: `Bearer ${token}` };
+  return config;
+}, (err) => Promise.reject(err));
 
 export default axiosClient;

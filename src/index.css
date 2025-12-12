@@ -2,15 +2,85 @@
 @tailwind components;
 @tailwind utilities;
 
+/* GLOBAL BACKGROUND + TEXT COLOR */
+body {
+    /* Set theme-aware text color globally */
+    @apply bg-background dark:bg-slate-900 text-textPrimary dark:text-white; 
+}
+
 /* simple spinner */
 @keyframes spin {
-  to { transform: rotate(360deg); }
+    to { transform: rotate(360deg); }
 }
 .spinner {
-  border: 4px solid rgba(0,0,0,0.1);
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border-left-color: currentColor;
-  animation: spin 1s linear infinite;
+    border: 4px solid rgba(0,0,0,0.1);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border-left-color: currentColor;
+    animation: spin 1s linear infinite;
+}
+
+/* Primary button - yellow */
+.btn-primary {
+    @apply text-black font-semibold px-6 py-3 rounded-lg shadow-md;
+    background-color: #facc15;
+    transition: all 0.3s ease;
+}
+.btn-primary:hover {
+    background-color: #eab308;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+}
+
+/* Secondary button - outline yellow */
+.btn-secondary {
+    @apply text-black border-2 border-yellow-400 font-semibold px-6 py-3 rounded-lg;
+    transition: all 0.3s ease;
+}
+.btn-secondary:hover {
+    @apply bg-yellow-400 text-black;
+    transform: translateY(-2px);
+}
+
+/* Cards */
+.card {
+    /* Set theme-aware text and background for cards */
+    @apply bg-card dark:bg-slate-800 text-textPrimary dark:text-white border border-borderColor rounded-lg shadow-sm p-6 transition-shadow;
+}
+.card:hover {
+    @apply shadow-md;
+}
+
+/* Muted text */
+.text-muted {
+    /* Muted text should also be dark-mode aware */
+    @apply text-textMuted dark:text-textMutedDark; 
+}
+
+/* Links */
+a {
+    /* Set theme-aware link color */
+    @apply text-textPrimary dark:text-white hover:text-primary transition-colors;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    /* Set theme-aware heading color */
+    @apply text-textPrimary dark:text-white font-bold;
+}
+
+/* Inputs and forms (FIXED dark:border-primary-700 -> dark:border-slate-700) */
+input, textarea, select {
+    @apply border border-borderColor dark:border-slate-700 rounded-lg p-3 text-textPrimary dark:text-white focus:outline-none focus:ring-2 focus:ring-primary;
+}
+
+/* Navbar background */
+.navbar {
+    @apply bg-card dark:bg-slate-800 text-textPrimary dark:text-white shadow-md;
+}
+
+/* Footer background (FIXED dark:border-primary-700 -> dark:border-slate-700) */
+.footer {
+    @apply bg-card dark:bg-slate-800 text-textPrimary dark:text-white border-t border-borderColor dark:border-slate-700;
 }

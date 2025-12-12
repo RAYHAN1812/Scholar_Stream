@@ -5,15 +5,12 @@ import App from './App';
 import './index.css';
 import { AuthProvider } from './context/AuthContext';
 import { ScholarshipProvider } from './context/ScholarshipContext';
-
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <ScholarshipProvider>
-          <App />
-        </ScholarshipProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <AuthProvider>
+      <ScholarshipProvider>
+        <App />
+      </ScholarshipProvider>
+    </AuthProvider>
   </React.StrictMode>
 );

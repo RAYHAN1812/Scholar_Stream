@@ -1,65 +1,104 @@
-// src/context/AuthContext.jsx - CORRECTED
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import axiosClient from '../api/axiosClient';
+// src/context/AuthContext.jsx
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import axiosClient from "../api/axiosClient";
+import useAxiosSecure from "../hooks/useAxiosSecure";
 
 const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loadingAuth, setLoadingAuth] = useState(true);
+export const AuthProvider = ({ children }) => {
+  const axiosSecure = useAxiosSecure(); // ensures secure instance is initialized
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async () => {
-    try {
-      const { data } = await axiosClient.get('/auth/profile');
-      setUser(data);
-    } catch (err) {
-      // FIX: Only log the error, but this is the expected path if no user is logged in.
-      // The state is already null, so we just stop loading.
-      setUser(null); 
-    } finally {
-      setLoadingAuth(false);
-    }
-  };
+  // Fetch profile if token exists
+  const fetchProfile = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
 
-  // FIX: This is the correct place to run the check
-  useEffect(() => {
-    // Check profile on initial load to maintain session from cookie
-    fetchProfile(); 
-  }, []);
+    try {
+      const res = await axiosClient.get("/auth/profile"); // axiosClient already attaches token
+      // Expect res.data.user from backend
+      setUser(res.data.user || null);
+    } catch (err) {
+      console.error("fetchProfile error:", err);
+      localStorage.removeItem("token");
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const login = async (email, password) => {
-    const { data } = await axiosClient.post('/auth/login', { email, password });
-    // The backend sets the cookie here.
-    // FIX: Re-fetch the profile immediately after a successful login to confirm the cookie is working
-    await fetchProfile(); 
-    
-    return data;
-  };
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
-  const register = async (payload) => {
-    const { data } = await axiosClient.post('/auth/register', payload);
-    // FIX: Assuming register also initiates a session/sets a cookie
-    await fetchProfile(); 
+  // Login: returns { success, message }
+  const login = async ({ email, password }) => {
+    try {
+      const res = await axiosClient.post("/auth/login", { email, password });
+      const token = res.data.token;
+      const loggedUser = res.data.user;
 
-    return data;
-  };
+      if (token) localStorage.setItem("token", token);
+      setUser(loggedUser || null);
 
-  const logout = async () => {
-    try {
-      await axiosClient.post('/auth/logout');
-    } catch (err) {
-      // ignore
-    }
-    setUser(null);
-  };
+      return { success: true };
+    } catch (err) {
+      console.error("login error:", err);
+      return { success: false, message: err.response?.data?.message || "Login failed" };
+    }
+  };
 
-  return (
-    <AuthContext.Provider value={{ user, setUser, loadingAuth, login, register, logout, fetchProfile }}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
+  // Register: returns { success, message }
+  // photoURL optional (you upload to ImgBB on frontend and pass photoURL here)
+  const register = async ({ name, email, password, role = "Student", photoURL = "" }) => {
+    try {
+      const res = await axiosClient.post("/auth/register", { name, email, password, role, photoURL });
+      // Option A: auto login after register if backend returns token
+      if (res.data?.token) {
+        localStorage.setItem("token", res.data.token);
+        setUser(res.data.user || null);
+        return { success: true };
+      }
+      // Option B: no token from backend -> you may call login() after register
+      return { success: true, user: res.data.user || null };
+    } catch (err) {
+      console.error("register error:", err);
+      return { success: false, message: err.response?.data?.message || "Registration failed" };
+    }
+  };
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
+  const logout = () => {
+    localStorage.removeItem("token");
+    setUser(null);
+    // optionally: window.location.href = "/login";
+  };
+
+  // role helpers for UI & route guards
+  const role = user?.role || "Student";
+  const isAdmin = role === "Admin";
+  const isModerator = role === "Moderator";
+  const isStudent = role === "Student";
+
+  const value = {
+    user,
+    loading,
+    login,
+    logout,
+    register,
+    fetchProfile,
+    axiosSecure, // expose if needed
+    role,
+    isAdmin,
+    isModerator,
+    isStudent,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export const useAuth = () => useContext(AuthContext);

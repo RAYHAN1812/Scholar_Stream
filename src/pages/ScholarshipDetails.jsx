@@ -1,71 +1,178 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axiosClient from '../api/axiosClient';
-import RecommendedScholarships from '../components/RecommendedScholarships';
-import { useAuth } from '../context/AuthContext';
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import useAxiosSecure from "../hooks/useAxiosSecure";
+import Swal from "sweetalert2";
+import { useAuth } from "../context/AuthContext";
 
 export default function ScholarshipDetails() {
   const { id } = useParams();
-  const [sch, setSch] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const axiosSecure = useAxiosSecure();
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const [scholarship, setScholarship] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [reviewText, setReviewText] = useState("");
+  const [rating, setRating] = useState(0);
+
+  // Fetch scholarship details
+  const fetchScholarship = async () => {
+    try {
+      const res = await axiosSecure.get(`/scholarships/${id}`);
+      setScholarship(res.data);
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Failed to fetch scholarship", "error");
+    }
+  };
+
+  // Fetch reviews
+  const fetchReviews = async () => {
+    try {
+      const res = await axiosSecure.get(`/scholarships/${id}/reviews`);
+      setReviews(res.data || []);
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Failed to fetch reviews", "error");
+    }
+  };
+
   useEffect(() => {
     setLoading(true);
-    axiosClient.get(`/scholarships/${id}`)
-      .then(({ data }) => setSch(data))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    Promise.all([fetchScholarship(), fetchReviews()]).finally(() =>
+      setLoading(false)
+    );
   }, [id]);
 
-  if (loading) return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-t-4 border-primary border-gray-200"></div></div>;
-  if (!sch) return <div className="text-center py-10 text-gray-500">Scholarship not found</div>;
+  // Apply button handler
+  const handleApply = () => {
+    if (!scholarship?._id) {
+      console.error("Scholarship data not ready:", scholarship);
+      Swal.fire("Error", "Scholarship ID not found. Please try again.", "error");
+      return;
+    }
+
+    console.log("Navigating to checkout for scholarship:", scholarship);
+    navigate(`/checkout/${scholarship._id.toString()}`);
+  };
+
+  // Submit review
+  const handleReviewSubmit = async () => {
+    if (!reviewText) return Swal.fire("Error", "Enter a review", "error");
+    if (!user) return Swal.fire("Error", "You must be logged in to submit a review", "error");
+
+    try {
+      await axiosSecure.post(`/scholarships/${id}/reviews`, {
+        scholarshipId: id,
+        universityName: scholarship?.universityName || "",
+        userName: user?.name || "Anonymous",
+        userEmail: user?.email || "",
+        userImage: user?.image || "",
+        ratingPoint: rating || 0,
+        reviewComment: reviewText,
+      });
+      Swal.fire("Success", "Review submitted!", "success");
+      setReviewText("");
+      setRating(0);
+      fetchReviews();
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Failed to submit review", "error");
+    }
+  };
+
+  if (loading)
+    return (
+      <div className="text-center py-8">
+        <div className="animate-spin h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4 rounded-full"></div>
+        Loading scholarship...
+      </div>
+    );
+
+  if (!scholarship)
+    return (
+      <div className="text-center py-8 text-red-600">
+        Scholarship not found.
+      </div>
+    );
 
   return (
-    <div className="max-w-6xl mx-auto p-6 grid md:grid-cols-3 gap-8">
-      {/* Main Content */}
-      <div className="md:col-span-2 space-y-6">
-        <img src={sch.universityImage} alt={sch.scholarshipName} className="w-full h-64 object-cover rounded-lg shadow-md" />
-        <h1 className="text-3xl font-bold text-text-light dark:text-text-dark">{sch.scholarshipName}</h1>
-        <p className="text-gray-600 dark:text-gray-400">{sch.universityName} • {sch.universityCity}, {sch.universityCountry}</p>
+    <div className="container mx-auto p-4 min-h-screen">
+      {/* Scholarship Info */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+        <h1 className="text-3xl font-bold mb-2">{scholarship.scholarshipName}</h1>
+        <p className="text-lg font-semibold mb-1">{scholarship.universityName}</p>
+        <p className="mb-1">
+          {scholarship.universityCountry || "N/A"} - {scholarship.universityCity || "N/A"}
+        </p>
+        <p className="mb-1">Degree: {scholarship.degree || "N/A"}</p>
+        <p className="mb-1">Category: {scholarship.scholarshipCategory || "N/A"}</p>
+        <p className="mb-1">Application Fee: ${scholarship.applicationFee || 0}</p>
+        <p className="mb-1">
+          Deadline: {scholarship.applicationDeadline
+            ? new Date(scholarship.applicationDeadline).toLocaleDateString()
+            : "N/A"}
+        </p>
 
-        <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-lg shadow-sm">
-          <h3 className="font-semibold text-lg mb-2">Description</h3>
-          <p className="text-gray-700 dark:text-gray-300 text-sm">{sch.description}</p>
-        </div>
-
-        <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-lg shadow-sm">
-          <h3 className="font-semibold text-lg mb-2">Reviews</h3>
-          {/* Placeholder for Reviews */}
-          <p className="text-gray-500 text-sm">Reviews will appear here once available.</p>
-        </div>
+        {/* Apply Button */}
+        <button
+          onClick={handleApply}
+          disabled={!scholarship}
+          className={`mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded ${
+            !scholarship ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          {scholarship ? "Apply Now" : "Loading..."}
+        </button>
       </div>
 
-      {/* Sidebar */}
-      <aside className="space-y-4 p-4 bg-surface-light dark:bg-surface-dark rounded-lg shadow-md">
-        <div className="flex justify-between">
-          <div className="text-sm font-medium">Application Fee</div>
-          <div className="text-lg font-bold">{sch.applicationFees || 'Free'}</div>
-        </div>
-        <div className="flex justify-between">
-          <div className="text-sm font-medium">Deadline</div>
-          <div className="text-sm">{new Date(sch.applicationDeadline).toDateString()}</div>
-        </div>
-        <button
-          className="w-full bg-primary text-white py-3 rounded-md hover:opacity-90 active:scale-95 transition-all duration-150"
-          onClick={() => {
-            if (!user) return navigate('/login', { state: { from: `/scholarships/${id}` }});
-            navigate(`/checkout/${sch._id}`);
-          }}
-        >
-          Apply for Scholarship
-        </button>
+      {/* Reviews Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+        <h2 className="text-2xl font-bold mb-4">Reviews</h2>
 
-        <div className="mt-4">
-          <RecommendedScholarships category={sch.subjectCategory || sch.scholarshipCategory} excludeId={sch._id} />
+        {/* Add Review */}
+        <div className="mb-6">
+          <textarea
+            className="w-full p-2 border rounded mb-2 dark:bg-gray-700 dark:text-white"
+            placeholder="Write your review..."
+            value={reviewText}
+            onChange={(e) => setReviewText(e.target.value)}
+          />
+          <input
+            type="number"
+            min={0}
+            max={5}
+            value={rating}
+            onChange={(e) => setRating(Number(e.target.value))}
+            placeholder="Rating (0-5)"
+            className="w-24 p-1 border rounded mb-2"
+          />
+          <button
+            onClick={handleReviewSubmit}
+            className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded"
+          >
+            Submit Review
+          </button>
         </div>
-      </aside>
+
+        {/* Review List */}
+        {reviews.length === 0 ? (
+          <p className="text-gray-500">No reviews yet.</p>
+        ) : (
+          <div className="space-y-4">
+            {reviews.map((rev) => (
+              <div key={rev._id} className="border-b pb-2 dark:border-gray-600">
+                <p className="font-semibold">{rev.userName || "Anonymous"}</p>
+                <p>{rev.reviewComment}</p>
+                <p className="text-sm text-gray-500">
+                  {rev.reviewDate ? new Date(rev.reviewDate).toLocaleDateString() : ""}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,45 +1,66 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import axiosClient from '../api/axiosClient';
+// src/context/ScholarshipContext.jsx
+import React, { createContext, useContext, useState } from "react";
+import useAxiosSecure from "../hooks/useAxiosSecure";
 
 const ScholarshipContext = createContext();
 
-export function ScholarshipProvider({ children }) {
+export const ScholarshipProvider = ({ children }) => {
+  const axiosSecure = useAxiosSecure();
+
   const [scholarships, setScholarships] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchScholarships = async (query = {}) => {
+  // Fetch scholarships with filters and pagination
+  const fetchScholarships = async ({ q, degree, scholarshipCategory, page = 1, limit = 12 }) => {
     setLoading(true);
+    setError(null);
+
     try {
-      const { data } = await axiosClient.get('/scholarships', { params: query });
+      const params = { page, limit };
+      if (q) params.q = q;
+      if (degree) params.degree = degree;
+      if (scholarshipCategory) params.scholarshipCategory = scholarshipCategory;
 
-      // FIX: Save only the array
-      setScholarships(data.scholarships || []);
-
-      return data;
+      const res = await axiosSecure.get("/scholarships", { params }); // <- Corrected API path
+      setScholarships(res.data.scholarships || []);
+      setTotalPages(res.data.totalPages || 1);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to fetch scholarships:", err);
+      setError(err);
+      setScholarships([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
   };
 
-  const getScholarship = async (id) => {
-    const { data } = await axiosClient.get(`/scholarships/${id}`);
-    return data;
+  // Fetch single scholarship by ID
+  const fetchScholarshipById = async (id) => {
+    try {
+      const res = await axiosSecure.get(`/scholarships/${id}`);
+      return res.data;
+    } catch (err) {
+      console.error("Failed to fetch scholarship by ID:", err);
+      throw err;
+    }
   };
 
-  // Load initial list (page 1)
-  useEffect(() => {
-    fetchScholarships({ page: 1, limit: 12 });
-  }, []);
-
   return (
-    <ScholarshipContext.Provider value={{ scholarships, loading, fetchScholarships, getScholarship }}>
+    <ScholarshipContext.Provider
+      value={{
+        scholarships,
+        loading,
+        error,
+        totalPages,
+        fetchScholarships,
+        fetchScholarshipById,
+      }}
+    >
       {children}
     </ScholarshipContext.Provider>
   );
-}
+};
 
-export function useScholarships() {
-  return useContext(ScholarshipContext);
-}
+export const useScholarships = () => useContext(ScholarshipContext);
