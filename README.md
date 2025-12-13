@@ -1,7 +1,6 @@
 # ScholarStream
 
-**Live URL:** [https://stellular-swan-0515ad.netlify.app/login](https://stellular-swan-0515ad.netlify.app/login)
-
+**Live URL:** https://stellular-swan-0515ad.netlify.app/
 ---
 
 ## Purpose
