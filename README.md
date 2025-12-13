@@ -1,16 +1,73 @@
-# React + Vite
+# ScholarStream
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Live URL:** [https://stellular-swan-0515ad.netlify.app/login](https://stellular-swan-0515ad.netlify.app/login)
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Purpose
 
-## React Compiler
+ScholarStream is a modern web application designed to help students discover and apply for scholarships. It provides a centralized platform to browse scholarships, submit applications, leave reviews, and track payments. Admins can manage scholarships, applications, and analytics easily.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Key Features
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Student Features
+- Browse and search scholarships by university, degree, and category.
+- Paginated scholarship listings for easy navigation.
+- Apply for scholarships and track application status.
+- Submit reviews and ratings for scholarships.
+- Secure login and authentication using JWT.
+
+### Admin Features
+- CRUD operations for scholarships (create, read, update, delete).
+- View and manage student applications.
+- Access analytics dashboard for scholarships and applications.
+- Secure admin authentication and protected routes.
+
+### Technical Features
+- JWT-based authentication and authorization.
+- MongoDB for data storage.
+- RESTful API structure.
+- Image uploads using ImgBB.
+- Payment integration using Stripe.
+- Firebase for authentication and cloud storage support.
+
+---
+
+## Tech Stack & npm Packages Used
+
+### Frontend
+- **React** – UI library for building interactive components
+- **React Router Dom** – Routing in React
+- **Axios** – API requests
+- **Vite** – Frontend build tool
+- **Firebase** – Authentication and storage
+- **ImgBB API** – For image uploads
+- **Stripe** – Payment integration
+
+### Backend
+- **Node.js** – JavaScript runtime
+- **Express** – Server framework
+- **MongoDB** – NoSQL database
+- **Mongoose** – MongoDB object modeling
+- **Cors** – Cross-Origin Resource Sharing
+- **dotenv** – Environment variables
+- **cookie-parser** – Cookie handling
+- **jsonwebtoken** – JWT token management
+- **Stripe** – Payment processing
+
+---
+
+## Deployment
+- **Frontend:** Deployed on Netlify ([Live site](https://stellular-swan-0515ad.netlify.app/login))  
+- **Backend:** Deployed on Render ([API URL](https://scholar-stream-backend.onrender.com/api))
+
+---
+
+## How to Run Locally
+
+1. Clone the repository:
+
+```bash
+git clone <my- repo-url>
